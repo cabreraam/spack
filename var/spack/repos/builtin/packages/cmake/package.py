@@ -144,6 +144,7 @@ class Cmake(Package):
     version("3.1.0", sha256="8bdc3fa3f2da81bc10c772a6b64cc9052acc2901d42e1e1b2588b40df224aad9")
     version("3.0.2", sha256="6b4ea61eadbbd9bec0ccb383c29d1f4496eacc121ef7acf37c7a24777805693e")
     version("2.8.10.2", sha256="ce524fb39da06ee6d47534bbcec6e0b50422e18b62abc4781a4ba72ea2910eb1")
+    version('tinspatch', sha256='4371af27700595fb72998cda73e1977505ef7368')
 
     variant(
         "build_type",
@@ -247,6 +248,10 @@ class Cmake(Package):
     # Should be fixed in 3.19.
     # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5025
     patch("pgi-cxx-ansi.patch", when="@3.15:3.18")
+
+    # Add support for LLVM Flang
+    # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6323
+    patch('6323-llvm-flang-support.patch', when='@3.18.0:3.23.1')
 
     # Adds CCE v11+ fortran preprocessing definition.
     # requires Cmake 3.19+

@@ -1,0 +1,99 @@
+From 4371af27700595fb72998cda73e1977505ef7368 Mon Sep 17 00:00:00 2001
+From: Tin Huynh <ahuynh@nvidia.com>
+Date: Wed, 7 Jul 2021 18:20:36 -0700
+Subject: [PATCH] LLVMFlang: Add support for LLVM Flang
+
+LLVM Flang (https://github.com/llvm/llvm-project/tree/main/flang) is an LLVM
+Fortran compiler that shares the same name as Flang (also known as Classic
+Flang). Classic Flang is in active development and is already identified by
+CMake as Flang. As such, LLVM Flang will be identified as `LLVMFlang`.
+
+Fixes: #22387
+---
+ Help/release/dev/LLVMFlang-compiler.rst     |  6 ++++++
+ Help/variable/CMAKE_LANG_COMPILER_ID.rst    |  3 ++-
+ Modules/CMakeDetermineFortranCompiler.cmake |  1 +
+ Modules/CMakeFortranCompilerId.F.in         |  7 +++++++
+ Modules/Compiler/LLVMFlang-Fortran.cmake    | 13 +++++++++++++
+ 5 files changed, 29 insertions(+), 1 deletion(-)
+ create mode 100644 Help/release/dev/LLVMFlang-compiler.rst
+ create mode 100644 Modules/Compiler/LLVMFlang-Fortran.cmake
+
+diff --git a/Help/release/dev/LLVMFlang-compiler.rst b/Help/release/dev/LLVMFlang-compiler.rst
+new file mode 100644
+index 0000000000..ebcf5092e0
+--- /dev/null
++++ b/Help/release/dev/LLVMFlang-compiler.rst
+@@ -0,0 +1,6 @@
++FlangLLVM
++---------
++
++* LLVM's `flang`_ Fortran compiler is now supported, with compiler id ``LLVMFlang``.
++
++.. _`flang`: https://github.com/llvm/llvm-project/tree/main/flang
+diff --git a/Help/variable/CMAKE_LANG_COMPILER_ID.rst b/Help/variable/CMAKE_LANG_COMPILER_ID.rst
+index 0abedde6a5..5ec239c9e5 100644
+--- a/Help/variable/CMAKE_LANG_COMPILER_ID.rst
++++ b/Help/variable/CMAKE_LANG_COMPILER_ID.rst
+@@ -18,7 +18,8 @@ include:
+   Clang = LLVM Clang (clang.llvm.org)
+   Cray = Cray Compiler (cray.com)
+   Embarcadero, Borland = Embarcadero (embarcadero.com)
+-  Flang = Flang LLVM Fortran Compiler
++  Flang = Classic Flang Fortran Compiler (https://github.com/flang-compiler/flang)
++  LLVMFlang = LLVM Flang Fortran Compiler (https://github.com/llvm/llvm-project/tree/main/flang)
+   Fujitsu = Fujitsu HPC compiler (Trad mode)
+   FujitsuClang = Fujitsu HPC compiler (Clang mode)
+   G95 = G95 Fortran (g95.org)
+diff --git a/Modules/CMakeDetermineFortranCompiler.cmake b/Modules/CMakeDetermineFortranCompiler.cmake
+index 6a8984b2bd..13a441816b 100644
+--- a/Modules/CMakeDetermineFortranCompiler.cmake
++++ b/Modules/CMakeDetermineFortranCompiler.cmake
+@@ -89,6 +89,7 @@ else()
+       set(_Fortran_COMPILER_NAMES_Absoft    af95 af90 af77)
+       set(_Fortran_COMPILER_NAMES_PGI       pgf95 pgfortran pgf90 pgf77)
+       set(_Fortran_COMPILER_NAMES_Flang     flang)
++      set(_Fortran_COMPILER_NAMES_LLVMFlang flang)
+       set(_Fortran_COMPILER_NAMES_PathScale pathf2003 pathf95 pathf90)
+       set(_Fortran_COMPILER_NAMES_XL        xlf)
+       set(_Fortran_COMPILER_NAMES_VisualAge xlf95 xlf90 xlf)
+diff --git a/Modules/CMakeFortranCompilerId.F.in b/Modules/CMakeFortranCompilerId.F.in
+index d0e0e46fb1..904622b6ac 100644
+--- a/Modules/CMakeFortranCompilerId.F.in
++++ b/Modules/CMakeFortranCompilerId.F.in
+@@ -147,6 +147,13 @@
+ # if defined(__FLANG_PATCHLEVEL__)
+ #  define COMPILER_VERSION_PATCH DEC(__FLANG_PATCHLEVEL__)
+ # endif
++#elif defined(__flang__)
++        PRINT *, 'INFO:compiler[LLVMFlang]'
++# define COMPILER_VERSION_MAJOR DEC(__flang_major__)
++# define COMPILER_VERSION_MINOR DEC(__flang_minor__)
++# if defined(__flang_patchlevel__)
++#  define COMPILER_VERSION_PATCH DEC(__flang_patchlevel__)
++# endif
+ #elif defined(_AIX) || defined(__AIX) || defined(__AIX__) || defined(__aix) || defined(__aix__)
+         PRINT *, 'INFO:compiler[VisualAge]'
+ #elif defined(__hpux) || defined(__hpux__)
+diff --git a/Modules/Compiler/LLVMFlang-Fortran.cmake b/Modules/Compiler/LLVMFlang-Fortran.cmake
+new file mode 100644
+index 0000000000..7e9ba5ecb7
+--- /dev/null
++++ b/Modules/Compiler/LLVMFlang-Fortran.cmake
+@@ -0,0 +1,13 @@
++set(CMAKE_Fortran_SUBMODULE_SEP "-")
++set(CMAKE_Fortran_SUBMODULE_EXT ".mod")
++
++set(CMAKE_Fortran_PREPROCESS_SOURCE
++    "<CMAKE_Fortran_COMPILER> -cpp <DEFINES> <INCLUDES> <FLAGS> -E <SOURCE> > <PREPROCESSED_SOURCE>")
++
++set(CMAKE_Fortran_FORMAT_FIXED_FLAG "-ffixed-form")
++set(CMAKE_Fortran_FORMAT_FREE_FLAG "-ffree-form")
++
++set(CMAKE_Fortran_MODDIR_FLAG "-module-dir")
++
++set(CMAKE_Fortran_COMPILE_OPTIONS_PREPROCESS_ON "-cpp")
++set(CMAKE_Fortran_COMPILE_OPTIONS_PREPROCESS_OFF "-nocpp")
+-- 
+GitLab
+

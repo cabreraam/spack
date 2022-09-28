@@ -37,6 +37,10 @@ class Php(AutotoolsPackage):
     depends_on("libxml2")
     depends_on("sqlite")
 
+    variant(
+        'curl', default=True, description='pass --with-curl flag to php autoconf'
+    )
+
     patch("sbang.patch")
 
     def patch(self):
@@ -59,6 +63,12 @@ class Php(AutotoolsPackage):
             makefile,
             string=True,
         )
+
+    def configure_args(self):
+        extra_args = []
+        if '+curl' in self.spec:
+            extra_args.append('--with-curl')
+        return extra_args
 
     def autoreconf(self, spec, prefix):
         bash = which("bash")
